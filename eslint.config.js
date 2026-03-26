@@ -32,6 +32,14 @@ module.exports = [
       "no-console": "off",
     },
   },
+  {
+    files: ["scripts/**/*.mjs"],
+    languageOptions: {
+      globals: {
+        console: "readonly",
+      },
+    },
+  },
   // ESLint config file itself runs in Node (CommonJS).
   {
     files: ["eslint.config.js"],
@@ -48,4 +56,3 @@ module.exports = [
   // Keep ESLint formatting rules out of the way if you use Prettier.
   require("eslint-config-prettier"),
 ];
-

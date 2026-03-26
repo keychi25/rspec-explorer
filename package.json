@@ -2,6 +2,7 @@
   "name": "rspec-explorer",
   "publisher": "local",
   "displayName": "RSpec Explorer",
+  "description": "Run RSpec examples from the Test Explorer and gutter in VS Code/Cursor.",
   "version": "0.0.1",
   "license": "UNLICENSED",
   "private": true,
@@ -22,6 +23,10 @@
   ],
   "scripts": {
     "vscode:prepublish": "pnpm compile",
+    "prepublish:check": "node ./scripts/prepublish-check.mjs",
+    "prepublish:verify": "pnpm -s prepublish:check && pnpm -s check && pnpm -s lint && pnpm -s test && pnpm -s package",
+    "release:prod:check": "node ./scripts/release-prod-check.mjs",
+    "release:prod": "pnpm -s release:prod:check && pnpm -s prepublish:verify && pnpm exec vsce publish",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "check": "pnpm -s compile",
