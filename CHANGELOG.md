@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.0.3
+
+- Added extension icon.
+- Added Marketplace metadata (categories/keywords), including the "rspec" tag.
+
 ## 0.0.1
 
 - Initial release candidate.

@@ -1,9 +1,19 @@
 {
   "name": "rspec-explorer",
-  "publisher": "local",
+  "publisher": "keychi25",
+  "icon": "extension/icon.png",
   "displayName": "RSpec Explorer",
   "description": "Run RSpec examples from the Test Explorer and gutter in VS Code/Cursor.",
-  "version": "0.0.2",
+  "categories": [
+    "Testing"
+  ],
+  "keywords": [
+    "ruby",
+    "rspec",
+    "test",
+    "testing"
+  ],
+  "version": "0.0.3",
   "license": "UNLICENSED",
   "private": true,
   "engines": {
@@ -17,6 +27,7 @@
   "files": [
     "out/**",
     "media/**",
+    "extension/icon.png",
     "package.json",
     "README.md",
     "LICENSE*"
