@@ -1,0 +1,51 @@
+{
+  "name": "rspec-explorer",
+  "publisher": "local",
+  "displayName": "RSpec Explorer",
+  "version": "0.0.1",
+  "license": "UNLICENSED",
+  "private": true,
+  "engines": {
+    "vscode": "^1.105.0"
+  },
+  "activationEvents": [
+    "onLanguage:ruby",
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "files": [
+    "out/**",
+    "media/**",
+    "package.json",
+    "README.md",
+    "LICENSE*"
+  ],
+  "scripts": {
+    "vscode:prepublish": "pnpm compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "check": "pnpm -s compile",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "sample:setup": "bash -lc \"cd sample && if command -v asdf >/dev/null 2>&1; then asdf exec bundle install; else bundle install; fi\"",
+    "sample:test": "bash -lc \"cd sample && if command -v asdf >/dev/null 2>&1; then asdf exec bundle exec rspec --tag ~intentional_failure; else bundle exec rspec --tag ~intentional_failure; fi\"",
+    "sample:test:all": "bash -lc \"cd sample && if command -v asdf >/dev/null 2>&1; then asdf exec bundle exec rspec; else bundle exec rspec; fi\"",
+    "dev:cursor": "bash -lc \"cursor --extensionDevelopmentPath=\\\"$(pwd)\\\" \\\"$(pwd)\\\"\"",
+    "dev:vscode": "bash -lc \"code --extensionDevelopmentPath=\\\"$(pwd)\\\" \\\"$(pwd)\\\"\"",
+    "package": "pnpm exec vsce package --allow-missing-repository",
+    "publish": "pnpm exec vsce publish"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^20.19.37",
+    "@types/vscode": "1.105.0",
+    "@vscode/vsce": "^2.15.0",
+    "eslint": "^10.1.0",
+    "eslint-config-prettier": "^10.1.8",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.57.2",
+    "vitest": "^3.2.4"
+  }
+}

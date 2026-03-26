@@ -1,0 +1,41 @@
+# dependencies
+node_modules/
+.pnpm-store/
+.pnp.*
+
+# build outputs
+out/
+dist/
+*.tsbuildinfo
+
+# packaged extension
+*.vsix
+
+# test artifacts
+.vscode-test/
+coverage/
+
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# local environment files
+.env
+.env.*
+
+# OS/editor metadata
+.DS_Store
+.idea/
+.vscode/
+
+# Ruby / Bundler (sample project)
+sample/.bundle/
+sample/vendor/bundle/
+sample/.ruby-lsp/
+sample/.rspec_status
+
+# Misc
+*.swp
