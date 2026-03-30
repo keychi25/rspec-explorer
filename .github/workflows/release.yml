@@ -1,0 +1,66 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+          run_install: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Assert tag matches package.json version
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF_NAME}"
+          VERSION="$(node -p "require('./package.json').version")"
+          if [[ "${TAG}" != "v${VERSION}" ]]; then
+            echo "ERROR: tag (${TAG}) must match package.json version (v${VERSION})." >&2
+            exit 1
+          fi
+
+      - name: Release sanity checks (requires VSCE_PAT)
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: node scripts/release-prod-check.mjs
+
+      - name: Build + test + package VSIX
+        run: pnpm -s prepublish:verify
+
+      - name: Locate VSIX
+        id: vsix
+        shell: bash
+        run: |
+          set -euo pipefail
+          ls -la
+          VSIX_PATH="$(ls -1 *.vsix | head -n 1)"
+          echo "vsix_path=${VSIX_PATH}" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release and upload VSIX
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.vsix.outputs.vsix_path }}
+          generate_release_notes: true
+
+      - name: Publish to VS Code Marketplace
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: pnpm -s release:prod
