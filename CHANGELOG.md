@@ -1,10 +1,11 @@
 # Changelog
 
-## 0.0.5-rc1
+## 0.0.5
 
 - Added GitHub Actions CI workflow for typecheck/lint/test.
 - Added release workflow to create GitHub Releases, attach the built VSIX, and publish to the VS Code Marketplace.
 - Added CI/CD documentation (`docs/CI_CD.md`).
+- Note: Marketplace does not accept semver prerelease suffixes in `version` (for example `0.0.5-rc1`). Use a normal version like `0.0.5` and publish pre-releases with `vsce publish --pre-release` (see `docs/CI_CD.md`).
 
 ## 0.0.4
 

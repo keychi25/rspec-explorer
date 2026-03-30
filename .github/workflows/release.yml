@@ -59,8 +59,15 @@ jobs:
         with:
           files: ${{ steps.vsix.outputs.vsix_path }}
           generate_release_notes: true
+          prerelease: ${{ vars.MARKETPLACE_PRERELEASE == 'true' }}
 
       - name: Publish to VS Code Marketplace
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
-        run: pnpm -s release:prod
+        run: |
+          set -euo pipefail
+          if [ "${{ vars.MARKETPLACE_PRERELEASE }}" = "true" ]; then
+            pnpm -s release:publish:prerelease
+          else
+            pnpm -s release:publish
+          fi
