@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.5-rc1
+
+- Added GitHub Actions CI workflow for typecheck/lint/test.
+- Added release workflow to create GitHub Releases, attach the built VSIX, and publish to the VS Code Marketplace.
+- Added CI/CD documentation (`docs/CI_CD.md`).
+
 ## 0.0.4
 
 - Lowered the minimum VS Code engine requirement to `^1.80.0` (was `^1.105.0`).
