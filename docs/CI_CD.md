@@ -10,7 +10,7 @@
 
 ## 全体像
 
-- **CI**: `main` への push / Pull Request で実行
+- **CI**: `master` への push / Pull Request で実行
   - `prepublish:check` → `check` → `lint` → `test`
 - **CD（Release）**: `v*` タグの push で実行
   - タグと `package.json` の version が一致することを検証（例: `v0.0.4`）
@@ -25,7 +25,7 @@
 
 ### トリガー
 
-- `push`（`main` ブランチ）
+- `push`（`master` ブランチ）
 - `pull_request`
 
 ### 実行内容
@@ -140,4 +140,3 @@ git push origin v0.0.5
   - まずは PAT を作り直し、`VSCE_PAT` を更新するのが早いことが多い
 - **`The VS Marketplace doesn't support prerelease versions: 'x.y.z-rc1'`**
   - `version` から `-rc1` などのサフィックスを外し、プレリリースは `vsce publish --pre-release`（CI では `MARKETPLACE_PRERELEASE=true`）で出す
-

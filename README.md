@@ -28,3 +28,10 @@ bundle install
 - **テストが見つからない / 実行できない**
   - `bundle exec rspec` がプロジェクト直下で実行できるか確認してください
   - Ruby / Bundler / RSpec が正しくインストールされているか確認してください
+
+## サポート
+
+- バグ報告: GitHub の `Bug report` から報告してください
+- 機能要望: GitHub の `Feature request` から提案してください
+- 使い方の質問: GitHub Discussions を利用してください
+- コントリビュート方法: `CONTRIBUTING.md` を参照してください

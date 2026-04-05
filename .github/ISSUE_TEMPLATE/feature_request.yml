@@ -1,0 +1,35 @@
+name: 機能要望
+description: 拡張機能の改善案を提案します。
+title: "[機能要望]: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 解決したい課題
+      description: 今どの作業がやりづらいかを書いてください。
+      placeholder: 直前に失敗した example を、ファイルを開き直さず再実行したいです。
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 提案する改善内容
+      description: どんな動作になるとよいかを書いてください。
+      placeholder: コマンドパレットから直前に失敗した spec を再実行できるコマンドを追加してほしいです。
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 他に検討した案
+      description: 任意です。回避策や別案があれば書いてください。
+
+  - type: textarea
+    id: context
+    attributes:
+      label: 補足情報
+      description: 任意です。スクリーンショット、サンプルプロジェクト、関連リンクなど。

@@ -1,0 +1,71 @@
+name: バグ報告
+description: 拡張機能で再現する不具合を報告します。
+title: "[不具合]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        不具合報告ありがとうございます。
+        ローカルで再現できるよう、できるだけ具体的な情報を記載してください。
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: 何が起きましたか？
+      description: 発生した問題と、本来期待していた動作を簡潔に書いてください。
+      placeholder: ガターに実行アイコンは表示されますが、クリックしても RSpec が起動しません。
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 再現手順
+      description: 問題を再現できる最小限の手順を書いてください。
+      placeholder: |
+        1. RSpec が入った Ruby プロジェクトを開く
+        2. spec ファイルを開く
+        3. ガターの実行アイコンをクリックする
+        4. 何も起きない
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: 実行環境
+      description: エディタやランタイムの情報を記載してください。
+      placeholder: |
+        - 拡張機能のバージョン:
+        - VS Code / Cursor のバージョン:
+        - OS:
+        - Ruby のバージョン:
+        - RSpec のバージョン:
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 関連ログやスクリーンショット
+      description: エラー出力、スタックトレース、スクリーンショットがあれば貼ってください。
+      render: shell
+
+  - type: textarea
+    id: project-shape
+    attributes:
+      label: プロジェクト構成
+      description: 必要であれば、spec ファイルの配置や標準と異なる構成を書いてください。
+      placeholder: spec は `engines/foo/spec` 配下にあり、`bundle exec rspec` で実行しています。
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: 送信前チェック
+      options:
+        - label: 対象プロジェクトで `bundle exec rspec` が動くことを確認しました。
+          required: true
+        - label: 重複を避けるため、既存 issue を確認しました。
+          required: true

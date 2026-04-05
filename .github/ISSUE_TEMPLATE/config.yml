@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 質問・使い方の相談
+    url: https://github.com/keychi25/rspec-explorer/discussions
+    about: Q&A や一般的な使い方の相談は GitHub Discussions を利用してください。
