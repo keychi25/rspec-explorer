@@ -3,21 +3,12 @@
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
-import { execSync } from "node:child_process";
 
 const root = process.cwd();
 
 function fail(message) {
   console.error(`ERROR: ${message}`);
   process.exit(1);
-}
-
-function run(command) {
-  try {
-    return execSync(command, { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
-  } catch (error) {
-    fail(error.stderr?.toString().trim() || error.message);
-  }
 }
 
 function readJson(relativePath) {
