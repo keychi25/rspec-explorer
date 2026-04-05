@@ -48,6 +48,8 @@
     "release:prod": "pnpm -s release:prod:check && pnpm -s prepublish:verify && pnpm exec vsce publish",
     "release:publish": "pnpm exec vsce publish",
     "release:publish:prerelease": "pnpm exec vsce publish --pre-release",
+    "release:publish:openvsx": "pnpm dlx ovsx publish",
+    "release:publish:openvsx:package": "pnpm dlx ovsx publish",
     "release:tag": "node ./scripts/create-release-tag.mjs",
     "release:tag:push": "node ./scripts/create-release-tag.mjs --push",
     "release:tag:dry-run": "node ./scripts/create-release-tag.mjs --dry-run",

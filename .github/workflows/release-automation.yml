@@ -250,3 +250,11 @@ jobs:
           else
             pnpm -s release:publish
           fi
+
+      - name: Publish to Open VSX
+        if: ${{ secrets.OVSX_PAT != '' }}
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        run: |
+          set -euo pipefail
+          pnpm -s release:publish:openvsx:package "${{ steps.vsix.outputs.vsix_path }}"
