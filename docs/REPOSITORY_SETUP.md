@@ -21,7 +21,7 @@ GitHub の `Settings` -> `Rules` -> `Rulesets` から、`master` 向けの rules
 
 - Target branches: `master`
 - Require a pull request before merging
-- Require approvals: `1`
+- Require approvals: `0` または `1`
 - Dismiss stale approvals when new commits are pushed
 - Require status checks to pass before merging
 - Required status check: `test`
@@ -33,6 +33,7 @@ GitHub の `Settings` -> `Rules` -> `Rulesets` から、`master` 向けの rules
 
 - このリポジトリの CI ワークフローでは、保護対象にしやすいよう job 名を `test` にしています
 - `CODEOWNERS` を使っているため、必要に応じて `Require review from Code Owners` も有効化できます
+- このリポジトリでは release PR を自動マージするため、承認件数は `0` にする運用が相性よいです
 
 ## 2. Release 運用
 

@@ -12,6 +12,9 @@
 
 - **CI**: `master` への push / Pull Request で実行
   - `prepublish:check` → `check` → `lint` → `test`
+- **Release Automation**: `master` への push で実行
+  - 通常コミット: release PR を自動作成
+  - release commit (`chore(release): ...`): tag を自動作成
 - **CD（Release）**: `v*` タグの push で実行
   - タグと `package.json` の version が一致することを検証（例: `v0.0.4`）
   - `release-prod-check.mjs` で「リリース可能な状態」を検証（PAT 必須など）
@@ -142,6 +145,24 @@ pnpm -s release:tag:push
 ```
 
 これで GitHub Actions の `Release` が走り、GitHub Release 作成 + VSIX 添付 + Marketplace publish まで自動で行われます。
+
+## Release Automation ワークフロー
+
+定義: `.github/workflows/release-automation.yml`
+
+### 動作
+
+- `master` に通常の変更が入る
+- patch version を 1 つ上げる release PR を自動作成する
+- release PR は auto-merge 設定で自動マージされる
+- release commit が `master` に入ると、対応する `vX.Y.Z` タグを自動作成する
+- そのタグ push をきっかけに既存の `Release` workflow が動く
+
+### 前提
+
+- `master` の branch protection は `Require a pull request` を有効にしたまま使える
+- 自動 release PR を通すため、このリポジトリでは approval 必須件数を `0` にしている
+- Marketplace publish 自体は引き続き `VSCE_PAT` に依存する
 
 ## よくある失敗と対処
 

@@ -9,6 +9,7 @@ const root = process.cwd();
 const args = new Set(process.argv.slice(2));
 const shouldPush = args.has("--push");
 const dryRun = args.has("--dry-run");
+const skipIfExists = args.has("--skip-if-exists");
 
 function fail(message) {
   console.error(`ERROR: ${message}`);
@@ -45,10 +46,18 @@ if (typeof version !== "string" || version.trim() === "") {
 }
 
 if (run(`git tag -l ${tagName}`) === tagName) {
+  if (skipIfExists) {
+    console.log(`${tagName} already exists locally. Skipping.`);
+    process.exit(0);
+  }
   fail(`${tagName} already exists locally.`);
 }
 
 if (shouldPush && run(`git ls-remote --tags origin refs/tags/${tagName}`) !== "") {
+  if (skipIfExists) {
+    console.log(`${tagName} already exists on origin. Skipping.`);
+    process.exit(0);
+  }
   fail(`${tagName} already exists on origin.`);
 }
 

@@ -1,0 +1,83 @@
+name: Release Automation
+
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: release-automation
+  cancel-in-progress: true
+
+jobs:
+  prepare_release_pr:
+    if: ${{ !startsWith(github.event.head_commit.message, 'chore(release):') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Prepare next release version
+        run: node scripts/prepare-release-version.mjs
+
+      - name: Read release version
+        id: version
+        run: |
+          set -euo pipefail
+          VERSION="$(cat .release-version)"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Create or update release pull request
+        id: cpr
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: "chore(release): v${{ steps.version.outputs.version }}"
+          branch: release/auto-version
+          delete-branch: true
+          title: "chore(release): v${{ steps.version.outputs.version }}"
+          body: |
+            ## 概要
+
+            - `master` への変更をもとに自動生成した release PR です
+            - `package.json` の version と `CHANGELOG.md` を更新しています
+
+            ## 次の動作
+
+            - CI が通ると auto-merge されます
+            - merge 後に tag を自動作成し、既存の `Release` workflow を起動します
+          labels: release
+
+      - name: Enable auto-merge for release pull request
+        if: ${{ steps.cpr.pull-request-number != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh pr merge --auto --squash "${{ steps.cpr.pull-request-number }}"
+
+  create_release_tag:
+    if: ${{ startsWith(github.event.head_commit.message, 'chore(release):') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Create and push release tag
+        run: node scripts/create-release-tag.mjs --push --skip-if-exists
