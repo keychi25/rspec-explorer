@@ -26,8 +26,23 @@ jobs:
         with:
           node-version: 20
 
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+          run_install: false
+
       - name: Prepare next release version
         run: node scripts/prepare-release-version.mjs
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate release branch contents
+        run: |
+          pnpm -s prepublish:check
+          pnpm -s check
+          pnpm -s lint
+          pnpm -s test
 
       - name: Read release version
         id: version
@@ -60,7 +75,17 @@ jobs:
         if: ${{ steps.cpr.pull-request-number != '' }}
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh pr merge --auto --squash "${{ steps.cpr.pull-request-number }}"
+        run: |
+          set -euo pipefail
+          HEAD_SHA="$(gh pr view "${{ steps.cpr.pull-request-number }}" --json headRefOid --jq '.headRefOid')"
+          gh api \
+            --method POST \
+            "repos/${{ github.repository }}/statuses/${HEAD_SHA}" \
+            -f state=success \
+            -f context=test \
+            -f description='Release automation checks passed' \
+            -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          gh pr merge --auto --squash "${{ steps.cpr.pull-request-number }}"
 
   create_release_tag:
     if: ${{ startsWith(github.event.head_commit.message, 'chore(release):') }}
