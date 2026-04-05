@@ -71,21 +71,37 @@ jobs:
             - merge 後に tag を自動作成し、既存の `Release` workflow を起動します
           labels: release
 
-      - name: Enable auto-merge for release pull request
-        if: ${{ steps.cpr.pull-request-number != '' }}
+      - name: Resolve release pull request number
+        id: release_pr
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          HEAD_SHA="$(gh pr view "${{ steps.cpr.pull-request-number }}" --json headRefOid --jq '.headRefOid')"
-          gh api \
-            --method POST \
-            "repos/${{ github.repository }}/statuses/${HEAD_SHA}" \
-            -f state=success \
-            -f context=test \
-            -f description='Release automation checks passed' \
-            -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          gh pr merge --auto --squash "${{ steps.cpr.pull-request-number }}"
+          PR_NUMBER="$(gh pr list \
+            --repo "${{ github.repository }}" \
+            --head release/auto-version \
+            --state open \
+            --json number \
+            --jq '.[0].number')"
+          if [ -z "${PR_NUMBER}" ] || [ "${PR_NUMBER}" = "null" ]; then
+            echo "ERROR: release pull request was not found." >&2
+            exit 1
+          fi
+          echo "number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
+
+      - name: Trigger CI for release pull request branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh workflow run CI \
+            --repo "${{ github.repository }}" \
+            --ref release/auto-version
+
+      - name: Enable auto-merge for release pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh pr merge --auto --squash "${{ steps.release_pr.outputs.number }}"
 
   create_release_tag:
     if: ${{ startsWith(github.event.head_commit.message, 'chore(release):') }}
