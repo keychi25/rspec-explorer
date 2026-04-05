@@ -22,6 +22,7 @@ pnpm -s prepublish:verify
 - `README.md` にセットアップ、使い方、公開手順があること
 - 生成された `.vsix` を Cursor と VS Code の両方でインストールし、基本フローが動くこと
 - `sample/` で `bundle exec rspec` が実行できること
+- Open VSX に公開する場合は `OVSX_PAT` と namespace が準備できていること
 
 ## 3. リリース当日の最終確認
 
@@ -32,7 +33,7 @@ pnpm -s prepublish:verify
 
 ## 4. 本番公開コマンド
 
-`VSCE_PAT` をセットして実行します。
+`VSCE_PAT` をセットして実行します。Open VSX へも手動 publish したい場合は `OVSX_PAT` も用意します。
 
 ```bash
 VSCE_PAT=xxxxx pnpm -s release:prod
@@ -44,3 +45,9 @@ VSCE_PAT=xxxxx pnpm -s release:prod
 - `VSCE_PAT` が設定済み
 - `CHANGELOG.md` に `## <version>` がある
 - git working tree が clean
+
+Open VSX 向けの手動 publish は次で実行できます。
+
+```bash
+OVSX_PAT=xxxxx pnpm -s release:publish:openvsx:package rspec-explorer-<version>.vsix
+```

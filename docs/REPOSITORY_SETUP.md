@@ -38,18 +38,20 @@ GitHub の `Settings` -> `Rules` -> `Rulesets` から、`master` 向けの rules
 
 ## 2. Release 運用
 
-このリポジトリでは `.github/workflows/release.yml` により、`v*` タグ push を起点に以下を自動化しています。
+このリポジトリでは `.github/workflows/release-automation.yml` により、`master` への push を起点に以下を自動化しています。
 
-- version と tag の整合性チェック
-- リリース前検証
-- VSIX の生成
+- release PR の自動作成
+- release PR 用 CI の実行と auto-merge
+- tag の自動作成
 - GitHub Release 作成
 - VS Code Marketplace への publish
+- Open VSX への publish
 
 公開前に GitHub 側で確認すること:
 
 - `Actions` が有効
 - Repository secret `VSCE_PAT` が設定済み
+- Repository secret `OVSX_PAT` が設定済み（Cursor/OpenVSX 検索も有効にしたい場合）
 - 必要なら Repository variable `MARKETPLACE_PRERELEASE=true`
 
 ## 3. 障害報告フロー
@@ -83,4 +85,5 @@ GitHub 側で追加で行うこと:
 - `package.json` の `private` / `license` / `repository` を公開方針に合わせて見直している
 - `pnpm -s prepublish:verify` が成功する
 - `VSCE_PAT` が設定されている
+- `OVSX_PAT` が設定されている（Open VSX へも公開する場合）
 - `master` の branch protection/ruleset が有効
