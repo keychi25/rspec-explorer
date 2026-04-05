@@ -19,6 +19,9 @@ jobs:
   prepare_release_pr:
     if: ${{ !startsWith(github.event.head_commit.message, 'chore(release):') }}
     runs-on: ubuntu-latest
+    outputs:
+      release_merged: ${{ steps.wait_for_merge.outputs.merged }}
+      release_merge_sha: ${{ steps.wait_for_merge.outputs.merge_sha }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -52,6 +55,7 @@ jobs:
           set -euo pipefail
           VERSION="$(node -p "require('./package.json').version")"
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag_name=v${VERSION}" >> "$GITHUB_OUTPUT"
 
       - name: Create or update release pull request
         id: cpr
@@ -148,13 +152,41 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: gh pr merge --auto --squash "${{ steps.release_pr.outputs.number }}"
 
+      - name: Wait for release pull request merge
+        id: wait_for_merge
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          PR_NUMBER="${{ steps.release_pr.outputs.number }}"
+          for _ in $(seq 1 60); do
+            read -r STATE MERGED_AT MERGE_SHA <<<"$(gh pr view "${PR_NUMBER}" \
+              --repo "${{ github.repository }}" \
+              --json state,mergedAt,mergeCommit \
+              --jq '[.state, (.mergedAt // ""), (.mergeCommit.oid // "")] | @tsv')"
+            if [ "${STATE}" = "MERGED" ] && [ -n "${MERGE_SHA}" ]; then
+              echo "merged=true" >> "$GITHUB_OUTPUT"
+              echo "merge_sha=${MERGE_SHA}" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            if [ "${STATE}" = "CLOSED" ] && [ -z "${MERGED_AT}" ]; then
+              echo "ERROR: release pull request was closed before merge." >&2
+              exit 1
+            fi
+            sleep 5
+          done
+          echo "ERROR: timed out waiting for release pull request merge." >&2
+          exit 1
+
   publish_release:
-    if: ${{ startsWith(github.event.head_commit.message, 'chore(release):') }}
+    needs: prepare_release_pr
+    if: ${{ needs.prepare_release_pr.outputs.release_merged == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ needs.prepare_release_pr.outputs.release_merge_sha }}
 
       - uses: actions/setup-node@v4
         with:
