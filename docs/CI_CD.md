@@ -162,6 +162,8 @@ pnpm -s release:tag:push
 
 - `master` の branch protection は `Require a pull request` を有効にしたまま使える
 - 自動 release PR を通すため、このリポジトリでは approval 必須件数を `0` にしている
+- `Settings` -> `Actions` -> `General` で workflow permissions を `Read and write permissions` にしている
+- `Allow GitHub Actions to create and approve pull requests` を有効にしている
 - Marketplace publish 自体は引き続き `VSCE_PAT` に依存する
 
 ## よくある失敗と対処
