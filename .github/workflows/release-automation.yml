@@ -91,13 +91,56 @@ jobs:
           echo "number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
 
       - name: Trigger CI for release pull request branch
+        id: release_ci
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
+          HEAD_SHA="$(gh pr view "${{ steps.release_pr.outputs.number }}" --json headRefOid --jq '.headRefOid')"
           gh workflow run CI \
             --repo "${{ github.repository }}" \
             --ref release/auto-version
+          for _ in $(seq 1 20); do
+            RUN_ID="$(gh run list \
+              --repo "${{ github.repository }}" \
+              --workflow CI \
+              --branch release/auto-version \
+              --event workflow_dispatch \
+              --json databaseId,headSha \
+              --jq ".[] | select(.headSha == \"${HEAD_SHA}\") | .databaseId" \
+              | head -n 1)"
+            if [ -n "${RUN_ID}" ]; then
+              echo "run_id=${RUN_ID}" >> "$GITHUB_OUTPUT"
+              echo "head_sha=${HEAD_SHA}" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            sleep 3
+          done
+          echo "ERROR: release branch CI run was not found." >&2
+          exit 1
+
+      - name: Bridge release CI result into required status check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if gh run watch "${{ steps.release_ci.outputs.run_id }}" --repo "${{ github.repository }}" --exit-status; then
+            STATE=success
+            DESCRIPTION='Release automation checks passed'
+          else
+            STATE=failure
+            DESCRIPTION='Release automation checks failed'
+          fi
+          gh api \
+            --method POST \
+            "repos/${{ github.repository }}/statuses/${{ steps.release_ci.outputs.head_sha }}" \
+            -f state="${STATE}" \
+            -f context=test \
+            -f description="${DESCRIPTION}" \
+            -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ steps.release_ci.outputs.run_id }}"
+          if [ "${STATE}" != "success" ]; then
+            exit 1
+          fi
 
       - name: Enable auto-merge for release pull request
         env:
