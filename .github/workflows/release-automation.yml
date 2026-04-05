@@ -49,7 +49,7 @@ jobs:
         id: version
         run: |
           set -euo pipefail
-          VERSION="$(cat .release-version)"
+          VERSION="$(node -p "require('./package.json').version")"
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
 
       - name: Create or update release pull request
@@ -69,7 +69,7 @@ jobs:
             ## 次の動作
 
             - CI が通ると auto-merge されます
-            - merge 後に tag を自動作成し、既存の `Release` workflow を起動します
+            - merge 後に同じ workflow 内で tag 作成と release publish を行います
           labels: release
 
       - name: Resolve release pull request number
@@ -104,7 +104,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: gh pr merge --auto --squash "${{ steps.release_pr.outputs.number }}"
 
-  create_release_tag:
+  publish_release:
     if: ${{ startsWith(github.event.head_commit.message, 'chore(release):') }}
     runs-on: ubuntu-latest
     steps:
@@ -116,10 +116,61 @@ jobs:
         with:
           node-version: 20
 
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+          run_install: false
+
       - name: Configure git identity
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
+      - name: Read release metadata
+        id: release_meta
+        run: |
+          set -euo pipefail
+          VERSION="$(node -p "require('./package.json').version")"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag_name=v${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Release sanity checks
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: node scripts/release-prod-check.mjs
+
+      - name: Build + test + package VSIX
+        run: pnpm -s prepublish:verify
+
       - name: Create and push release tag
         run: node scripts/create-release-tag.mjs --push --skip-if-exists
+
+      - name: Locate VSIX
+        id: vsix
+        shell: bash
+        run: |
+          set -euo pipefail
+          VSIX_PATH="$(ls -1 *.vsix | head -n 1)"
+          echo "vsix_path=${VSIX_PATH}" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release and upload VSIX
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.release_meta.outputs.tag_name }}
+          files: ${{ steps.vsix.outputs.vsix_path }}
+          generate_release_notes: true
+          prerelease: ${{ vars.MARKETPLACE_PRERELEASE == 'true' }}
+
+      - name: Publish to VS Code Marketplace
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: |
+          set -euo pipefail
+          if [ "${{ vars.MARKETPLACE_PRERELEASE }}" = "true" ]; then
+            pnpm -s release:publish:prerelease
+          else
+            pnpm -s release:publish
+          fi

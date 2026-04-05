@@ -14,7 +14,7 @@
   - `prepublish:check` → `check` → `lint` → `test`
 - **Release Automation**: `master` への push で実行
   - 通常コミット: release PR を自動作成
-  - release commit (`chore(release): ...`): tag を自動作成
+  - release commit (`chore(release): ...`): tag 作成・GitHub Release・Marketplace publish を実行
 - **CD（Release）**: `v*` タグの push で実行
   - タグと `package.json` の version が一致することを検証（例: `v0.0.4`）
   - `release-prod-check.mjs` で「リリース可能な状態」を検証（PAT 必須など）
@@ -155,8 +155,8 @@ pnpm -s release:tag:push
 - `master` に通常の変更が入る
 - patch version を 1 つ上げる release PR を自動作成する
 - release PR は auto-merge 設定で自動マージされる
-- release commit が `master` に入ると、対応する `vX.Y.Z` タグを自動作成する
-- そのタグ push をきっかけに既存の `Release` workflow が動く
+- release commit が `master` に入ると、同じ workflow の中で対応する `vX.Y.Z` タグを自動作成する
+- 同じ workflow の中で GitHub Release 作成と Marketplace publish まで実行する
 
 ### 前提
 
@@ -165,6 +165,7 @@ pnpm -s release:tag:push
 - `Settings` -> `Actions` -> `General` で workflow permissions を `Read and write permissions` にしている
 - `Allow GitHub Actions to create and approve pull requests` を有効にしている
 - Marketplace publish 自体は引き続き `VSCE_PAT` に依存する
+- `VSCE_PAT` は workflow 内で `vsce verify-pat <publisher>` により publish 権限を事前検証する
 
 ## よくある失敗と対処
 

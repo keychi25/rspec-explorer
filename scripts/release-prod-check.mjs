@@ -11,6 +11,7 @@ const args = new Set(process.argv.slice(2));
 const allowDirty = args.has("--allow-dirty");
 const skipPublisherCheck = args.has("--skip-publisher-check");
 const skipTokenCheck = args.has("--skip-token-check");
+const skipPatVerify = args.has("--skip-pat-verify");
 
 function fail(message) {
   console.error(`ERROR: ${message}`);
@@ -49,6 +50,24 @@ if (!skipPublisherCheck && packageJson.publisher === "local") {
 
 if (!skipTokenCheck && !process.env.VSCE_PAT) {
   fail("VSCE_PAT is not set. Export VSCE_PAT before running production publish.");
+}
+
+if (!skipTokenCheck && !skipPatVerify) {
+  try {
+    execSync(`pnpm exec vsce verify-pat ${packageJson.publisher}`, {
+      cwd: root,
+      stdio: "pipe",
+      encoding: "utf8",
+      env: process.env,
+    });
+  } catch (error) {
+    const stderr = error.stderr?.toString().trim();
+    fail(
+      stderr && stderr.length > 0
+        ? `VSCE_PAT does not have publish rights for publisher "${packageJson.publisher}": ${stderr}`
+        : `VSCE_PAT does not have publish rights for publisher "${packageJson.publisher}".`,
+    );
+  }
 }
 
 if (!fs.existsSync(changelogPath)) {

@@ -34,6 +34,7 @@ GitHub の `Settings` -> `Rules` -> `Rulesets` から、`master` 向けの rules
 - このリポジトリの CI ワークフローでは、保護対象にしやすいよう job 名を `test` にしています
 - `CODEOWNERS` を使っているため、必要に応じて `Require review from Code Owners` も有効化できます
 - このリポジトリでは release PR を自動マージするため、承認件数は `0` にする運用が相性よいです
+- `test` の required check は app 固定なしで扱い、release automation が付与する status でも満たせるようにしています
 
 ## 2. Release 運用
 

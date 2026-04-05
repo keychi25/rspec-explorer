@@ -71,6 +71,5 @@ if (!fs.existsSync(changelogPath)) {
 
 const changelog = fs.readFileSync(changelogPath, "utf8");
 fs.writeFileSync(changelogPath, updateChangelog(changelog, nextVersion), "utf8");
-fs.writeFileSync(path.join(root, ".release-version"), `${nextVersion}\n`, "utf8");
 
 console.log(`Prepared release version ${nextVersion}`);
