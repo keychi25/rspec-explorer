@@ -5,7 +5,7 @@
 ## 目的
 
 - PR の段階で **型チェック / lint / テスト** を自動実行し、壊れた状態でのマージを防ぐ
-- リリース作業を「タグを打つ」だけに寄せ、**VSIX の生成・添付**と **Marketplace / Open VSX publish** を一括で行う
+- リリース作業を「`master` にマージする」だけに寄せ、**VSIX の生成・添付**と **Marketplace / Open VSX publish** を一括で行う
 - リリースの前提条件（Changelog 更新、token 設定など）を CI で機械的に検証する
 
 ## 全体像
@@ -44,49 +44,14 @@ CI は「公開前に最低限守りたい品質ゲート」を回します。
 - `pnpm -s test`
   - Vitest
 
-## Release（CD）ワークフロー
-
-定義: `.github/workflows/release.yml`
-
-### トリガー
-
-- `push`（タグが `v*` にマッチしたとき）
-  - 例: `v0.0.4`
-
-### 重要な前提（タグと version の一致）
-
-Release では、タグ名と `package.json` の `version` が一致しない場合は失敗します。
-
-- OK: `package.json: "0.0.4"` かつ tag: `v0.0.4`
-- NG: `package.json: "0.0.4"` かつ tag: `v0.0.5`
-
-このチェックにより「間違ったバージョンを Marketplace に出してしまう」事故を予防します。
-
-### 実行内容
-
-1. 依存関係をインストール（`pnpm install --frozen-lockfile`）
-2. タグと version の整合性チェック
-3. `scripts/release-prod-check.mjs` を実行
-   - **VSCE_PAT が設定されていること**
-   - `CHANGELOG.md` に `## <version>` があること
-   - `publisher` が `local` ではないこと（※該当のチェックが有効な場合）
-   - `package.json` に Marketplace 向けの公開メタデータが入っていること（repository など）
-   - ※ローカル運用向けの「git working tree が clean」チェックは Actions でも概ね満たされます
-4. `pnpm -s prepublish:verify`（ビルド/テスト/VSIX 生成）
-5. `.vsix` を検出し、GitHub Release を作成して添付
-6. Marketplace に publish（このリポジトリでは事前に `prepublish:verify` 済みのため、`vsce publish` のみ実行）
-   - 安定版: `pnpm -s release:publish`（`vsce publish`）
-   - Marketplace のプレリリース版: `pnpm -s release:publish:prerelease`（`vsce publish --pre-release`）
-   - CI ではリポジトリ変数 `MARKETPLACE_PRERELEASE` が `true` のとき `--pre-release` を付けます（下記）
-
-### Marketplace のバージョン表記（重要）
+## Marketplace のバージョン表記（重要）
 
 VS Marketplace は `package.json` の `version` に **semver の prerelease サフィックス**（例: `0.0.5-rc1`）を受け付けません。
 
 - **通常のバージョン**は `0.0.5` のように **プレフィックスなしの semver** にします
 - Marketplace 上で「プレリリース」として出したい場合は、バージョン文字列ではなく **`vsce publish --pre-release`** を使います（公式: [Prerelease Extensions](https://code.visualstudio.com/api/working-with-extensions/publishing-extension#prerelease-extensions)）
 
-### リポジトリ変数 `MARKETPLACE_PRERELEASE`
+## リポジトリ変数 `MARKETPLACE_PRERELEASE`
 
 GitHub の **Repository variables** に次を設定できます（任意）。
 
@@ -95,7 +60,7 @@ GitHub の **Repository variables** に次を設定できます（任意）。
 
 ローカルで手動 publish する場合は、従来どおり `pnpm -s release:prod`（チェック + 検証 + publish）か、検証後に `pnpm -s release:publish:prerelease` を使います。
 
-### GitHub Release と VSIX
+## GitHub Release と VSIX
 
 Release ワークフローは `.vsix` を生成し、GitHub Release に添付します。
 
@@ -146,32 +111,20 @@ OVSX_PAT=... pnpm -s release:publish:openvsx:package rspec-explorer-0.0.9.vsix
 
 ## リリース手順（推奨）
 
-1. `package.json` の `version` を更新
-2. `CHANGELOG.md` に `## <version>` セクションを追加
-3. ローカルで `pnpm -s prepublish:verify` が通ることを確認（任意だが推奨）
-4. コミットして push
-5. タグを作成して push
+1. `master` に通常の変更を PR 経由でマージする
+2. `Release Automation` が release PR を自動作成する
+3. release PR の CI が通ると auto-merge される
+4. 同じ workflow の中で tag / GitHub Release / VS Code Marketplace / Open VSX publish まで実行される
+
+通常運用では、手動で tag を作る必要はありません。
+
+例外的にローカルから tag を扱いたい場合だけ、次の npm script を使えます。
 
 ```bash
-# 例: version=0.0.5 のリリース（タグは v + package.json の version）
-git tag v0.0.5
-git push origin v0.0.5
-```
-
-ローカルから安全に実行したい場合は、次の npm script も使えます。
-
-```bash
-# 何を作るかだけ確認
 pnpm -s release:tag:dry-run
-
-# ローカルにタグだけ作成
 pnpm -s release:tag
-
-# タグ作成と push をまとめて実行
 pnpm -s release:tag:push
 ```
-
-これで GitHub Actions の `Release` が走り、GitHub Release 作成 + VSIX 添付 + Marketplace publish まで自動で行われます。
 
 ## Release Automation ワークフロー
 
@@ -184,6 +137,7 @@ pnpm -s release:tag:push
 - release PR は auto-merge 設定で自動マージされる
 - release commit が `master` に入ると、同じ workflow の中で対応する `vX.Y.Z` タグを自動作成する
 - 同じ workflow の中で GitHub Release 作成、VS Code Marketplace publish、Open VSX publish まで実行する
+- JavaScript action の Node 24 移行警告に備えて `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true` を有効にしている
 
 ### 前提
 

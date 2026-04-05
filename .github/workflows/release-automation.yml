@@ -5,6 +5,9 @@ on:
     branches:
       - master
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 permissions:
   actions: write
   contents: write
@@ -182,6 +185,9 @@ jobs:
     needs: prepare_release_pr
     if: ${{ needs.prepare_release_pr.outputs.release_merged == 'true' }}
     runs-on: ubuntu-latest
+    env:
+      OVSX_PAT: ${{ secrets.OVSX_PAT }}
+      VSCE_PAT: ${{ secrets.VSCE_PAT }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -214,8 +220,6 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Release sanity checks
-        env:
-          VSCE_PAT: ${{ secrets.VSCE_PAT }}
         run: node scripts/release-prod-check.mjs
 
       - name: Build + test + package VSIX
@@ -241,8 +245,6 @@ jobs:
           prerelease: ${{ vars.MARKETPLACE_PRERELEASE == 'true' }}
 
       - name: Publish to VS Code Marketplace
-        env:
-          VSCE_PAT: ${{ secrets.VSCE_PAT }}
         run: |
           set -euo pipefail
           if [ "${{ vars.MARKETPLACE_PRERELEASE }}" = "true" ]; then
@@ -252,9 +254,7 @@ jobs:
           fi
 
       - name: Publish to Open VSX
-        if: ${{ secrets.OVSX_PAT != '' }}
-        env:
-          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        if: ${{ env.OVSX_PAT != '' }}
         run: |
           set -euo pipefail
           pnpm -s release:publish:openvsx:package "${{ steps.vsix.outputs.vsix_path }}"
