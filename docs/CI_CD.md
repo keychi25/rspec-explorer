@@ -128,6 +128,19 @@ git tag v0.0.5
 git push origin v0.0.5
 ```
 
+ローカルから安全に実行したい場合は、次の npm script も使えます。
+
+```bash
+# 何を作るかだけ確認
+pnpm -s release:tag:dry-run
+
+# ローカルにタグだけ作成
+pnpm -s release:tag
+
+# タグ作成と push をまとめて実行
+pnpm -s release:tag:push
+```
+
 これで GitHub Actions の `Release` が走り、GitHub Release 作成 + VSIX 添付 + Marketplace publish まで自動で行われます。
 
 ## よくある失敗と対処
