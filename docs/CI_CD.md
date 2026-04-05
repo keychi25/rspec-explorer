@@ -67,6 +67,7 @@ Release では、タグ名と `package.json` の `version` が一致しない場
    - **VSCE_PAT が設定されていること**
    - `CHANGELOG.md` に `## <version>` があること
    - `publisher` が `local` ではないこと（※該当のチェックが有効な場合）
+   - `package.json` に Marketplace 向けの公開メタデータが入っていること（repository など）
    - ※ローカル運用向けの「git working tree が clean」チェックは Actions でも概ね満たされます
 4. `pnpm -s prepublish:verify`（ビルド/テスト/VSIX 生成）
 5. `.vsix` を検出し、GitHub Release を作成して添付
@@ -109,6 +110,8 @@ Marketplace publish のために必要な Personal Access Token です。
 
 PAT は Azure DevOps 側で発行します（作成時に一度だけ表示されます）。
 
+このトークンは、Marketplace の publisher `keychi25` に対して publish 権限を持つアカウントで発行したものを使ってください。権限のない PAT を使うと、Release で `TF400813: ... is not authorized to access this resource.` となります。
+
 参考: [Publishing Extensions（VS Code Extension API）](https://code.visualstudio.com/api/working-with-extensions/publishing-extension)
 
 ## リリース手順（推奨）
@@ -137,6 +140,7 @@ git push origin v0.0.5
   - `package.json` の `version` と `vX.Y.Z` を一致させる
 - **Marketplace publish が失敗する**
   - PAT の scope が不足している / PAT が失効している / publisher が違う、など
+  - 具体的に `TF400813` が出る場合は、`VSCE_PAT` が対象 publisher に対して publish 権限を持っていない可能性が高いです
   - まずは PAT を作り直し、`VSCE_PAT` を更新するのが早いことが多い
 - **`The VS Marketplace doesn't support prerelease versions: 'x.y.z-rc1'`**
   - `version` から `-rc1` などのサフィックスを外し、プレリリースは `vsce publish --pre-release`（CI では `MARKETPLACE_PRERELEASE=true`）で出す

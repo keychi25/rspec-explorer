@@ -97,8 +97,17 @@ if (!packageJson) {
     }
   }
 
-  if (packageJson.private === true) {
-    warnings.push('package.json: "private" is true. Keep this if intentional for npm; it does not block VSIX packaging.');
+  if (
+    packageJson.repository === null ||
+    typeof packageJson.repository !== "object" ||
+    !hasNonEmptyString(packageJson.repository.type) ||
+    !hasNonEmptyString(packageJson.repository.url)
+  ) {
+    errors.push('package.json: "repository.type" and "repository.url" must be set.');
+  }
+
+  if (!hasNonEmptyString(packageJson.license)) {
+    warnings.push('package.json: "license" should be set.');
   }
 
   if (packageJson.publisher === "local") {

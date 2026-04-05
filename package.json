@@ -14,8 +14,16 @@
     "testing"
   ],
   "version": "0.0.5",
-  "license": "UNLICENSED",
-  "private": true,
+  "license": "MIT",
+  "private": false,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/keychi25/rspec-explorer.git"
+  },
+  "homepage": "https://github.com/keychi25/rspec-explorer",
+  "bugs": {
+    "url": "https://github.com/keychi25/rspec-explorer/issues"
+  },
   "engines": {
     "vscode": "^1.80.0"
   },
@@ -52,7 +60,7 @@
     "sample:test:all": "bash -lc \"cd sample && if command -v asdf >/dev/null 2>&1; then asdf exec bundle exec rspec; else bundle exec rspec; fi\"",
     "dev:cursor": "bash -lc \"cursor --extensionDevelopmentPath=\\\"$(pwd)\\\" \\\"$(pwd)\\\"\"",
     "dev:vscode": "bash -lc \"code --extensionDevelopmentPath=\\\"$(pwd)\\\" \\\"$(pwd)\\\"\"",
-    "package": "pnpm exec vsce package --allow-missing-repository",
+    "package": "pnpm exec vsce package",
     "publish": "pnpm exec vsce publish"
   },
   "devDependencies": {
