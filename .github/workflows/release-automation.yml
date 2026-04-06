@@ -254,7 +254,10 @@ jobs:
           fi
 
       - name: Publish to Open VSX
-        if: ${{ env.OVSX_PAT != '' }}
         run: |
           set -euo pipefail
+          if [ -z "${OVSX_PAT}" ]; then
+            echo "OVSX_PAT is not set. Skipping Open VSX publish."
+            exit 0
+          fi
           pnpm -s release:publish:openvsx:package "${{ steps.vsix.outputs.vsix_path }}"
