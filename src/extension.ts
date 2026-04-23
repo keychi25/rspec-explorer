@@ -270,26 +270,40 @@ export function activate(context: vscode.ExtensionContext) {
       lensProvider.refresh();
     };
 
-    const isTooLargeSpecFile = (uri: vscode.Uri): boolean => {
-      if (uri.scheme !== "file") return false;
+    const clearDiscoveredFileState = (uri: vscode.Uri) => {
+      const id = uri.toString();
+      ctrl.items.delete(id);
+      lastParsedDocumentVersion.delete(id);
+      lineResults.delete(id);
+
+      const locationPrefix = `${id}#`;
+      for (const key of itemByLocation.keys()) {
+        if (key.startsWith(locationPrefix)) {
+          itemByLocation.delete(key);
+        }
+      }
+    };
+
+    const isTooLargeSpecFile = async (uri: vscode.Uri): Promise<boolean> => {
       try {
-        const stat = fs.statSync(uri.fsPath);
+        const stat = await vscode.workspace.fs.stat(uri);
         if (stat.size > MAX_DISCOVER_FILE_SIZE_BYTES) {
           output.appendLine(
-            `[discover] skip large file (${Math.round(stat.size / (1024 * 1024))}MB): ${uri.fsPath}`,
+            `[discover] skip large file (${Math.round(stat.size / (1024 * 1024))}MB): ${uri.toString()}`,
           );
+          clearDiscoveredFileState(uri);
           return true;
         }
       } catch (e) {
         output.appendLine(
-          `[discover] warn: failed to stat ${uri.fsPath}: ${String(e)}`,
+          `[discover] warn: failed to stat ${uri.toString()}: ${String(e)}`,
         );
       }
       return false;
     };
 
     const updateTestsFromUri = async (uri: vscode.Uri) => {
-      if (isTooLargeSpecFile(uri)) return;
+      if (await isTooLargeSpecFile(uri)) return;
       try {
         const doc = await vscode.workspace.openTextDocument(uri);
         updateTests(doc);
