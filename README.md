@@ -1,37 +1,72 @@
-# RSpec Explorer for VS Code
+# RSpec Explorer
 
-RSpec のテストを VS Code のテストエクスプローラーおよびエディタのガター（行番号の横）から直接実行できる拡張機能です。
+RSpec Explorer は、Ruby プロジェクトの RSpec を **VS Code / Cursor の Test Explorer とエディタガターから実行できる拡張機能**です。
 
-## 機能
+この README は、利用者向けに一般的な拡張機能 README の構成でまとめています。
 
-- **Test Explorer から RSpec を実行**
-- **エディタのガター（行番号の横）から RSpec を実行**
+## 主な特徴
 
-## 動作要件
+- Test Explorer からテストを実行
+- エディタのガター（行番号横）からテストを実行
+- RSpec の実行結果を VS Code のテスト UI に反映
 
-- **Ruby / Bundler**（`bundle exec rspec` で実行できること）
-- **RSpec**（プロジェクトに導入されていること）
+## 対応環境
 
-## 使い方
+- VS Code `1.80.0` 以上（`engines.vscode`）
+- Ruby / Bundler が利用可能
+- 対象プロジェクトに RSpec が導入済み
 
-1. 対象プロジェクトで依存をインストールします。
+## インストール
+
+1. VS Code Marketplace（または Open VSX）から **RSpec Explorer** をインストール
+2. RSpec を使う Ruby プロジェクトを開く
+3. 依存が未導入の場合はプロジェクトルートで以下を実行
 
 ```bash
 bundle install
 ```
 
-2. VS Code（または Cursor）でプロジェクトを開きます。
-3. Test Explorer、またはエディタのガターからテストを実行します。
+## 使い方
+
+1. コマンドパレットまたはサイドバーから **Testing** ビューを開く
+2. Test Explorer の各テスト、またはエディタガターの実行アイコンから RSpec を実行
+3. 結果を Testing ビューで確認
+
+## 前提条件と実行コマンド
+
+この拡張機能は、対象プロジェクトで以下が通る状態を前提にしています。
+
+```bash
+bundle exec rspec
+```
 
 ## トラブルシュート
 
-- **テストが見つからない / 実行できない**
-  - `bundle exec rspec` がプロジェクト直下で実行できるか確認してください
-  - Ruby / Bundler / RSpec が正しくインストールされているか確認してください
+### テストが表示されない / 実行できない
+
+- プロジェクトルートで `bundle exec rspec` が成功するか確認
+- Ruby / Bundler / RSpec のインストール状態を確認
+- ワークスペースとして開いているフォルダが RSpec プロジェクトのルートか確認
+
+### 実行結果が不安定な場合
+
+- 依存関係を再インストール（`bundle install`）
+- 拡張機能ホストを再起動
+- VS Code（または Cursor）を再起動
+
+## 開発者向け
+
+- 開発手順: `docs/DEVELOPMENT.md`
+- CI/CD: `docs/CI_CD.md`
+- リリース前チェック: `docs/prepublish-checklist.md`
+- コントリビュート: `CONTRIBUTING.md`
 
 ## サポート
 
-- バグ報告: GitHub の `Bug report` から報告してください
-- 機能要望: GitHub の `Feature request` から提案してください
-- 使い方の質問: GitHub Discussions を利用してください
-- コントリビュート方法: `CONTRIBUTING.md` を参照してください
+- バグ報告: GitHub Issues（Bug report）
+- 機能要望: GitHub Issues（Feature request）
+- 質問・相談: GitHub Discussions
+
+## ライセンス
+
+MIT（`LICENSE`）
