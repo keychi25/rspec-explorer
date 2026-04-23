@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.0.12
+
+- Automated release prepared from `master`.
+- Review merged changes in GitHub pull requests and commit history before publishing.
+
 ## 0.0.11
 
 - Automated release prepared from `master`.
