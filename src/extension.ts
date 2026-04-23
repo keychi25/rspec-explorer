@@ -123,6 +123,8 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Map: `${uri.toString()}#${line}` -> TestItem
     const itemByLocation = new Map<string, vscode.TestItem>();
+    const lastParsedDocumentVersion = new Map<string, number>();
+    const MAX_DISCOVER_FILE_SIZE_BYTES = 50 * 1024 * 1024; // 50MB
 
     const runGroupIcon = vscode.Uri.joinPath(
       context.extensionUri,
@@ -206,6 +208,10 @@ export function activate(context: vscode.ExtensionContext) {
       if (doc.uri.scheme !== "file") return;
       if (!doc.uri.path.endsWith("_spec.rb")) return;
 
+      const prevVersion = lastParsedDocumentVersion.get(doc.uri.toString());
+      if (prevVersion === doc.version) return;
+      lastParsedDocumentVersion.set(doc.uri.toString(), doc.version);
+
       const id = doc.uri.toString();
       const existing = ctrl.items.get(id);
       const fileItem =
@@ -264,6 +270,50 @@ export function activate(context: vscode.ExtensionContext) {
       lensProvider.refresh();
     };
 
+    const clearDiscoveredFileState = (uri: vscode.Uri) => {
+      const id = uri.toString();
+      ctrl.items.delete(id);
+      lastParsedDocumentVersion.delete(id);
+      lineResults.delete(id);
+
+      const locationPrefix = `${id}#`;
+      for (const key of itemByLocation.keys()) {
+        if (key.startsWith(locationPrefix)) {
+          itemByLocation.delete(key);
+        }
+      }
+    };
+
+    const isTooLargeSpecFile = async (uri: vscode.Uri): Promise<boolean> => {
+      try {
+        const stat = await vscode.workspace.fs.stat(uri);
+        if (stat.size > MAX_DISCOVER_FILE_SIZE_BYTES) {
+          output.appendLine(
+            `[discover] skip large file (${Math.round(stat.size / (1024 * 1024))}MB): ${uri.toString()}`,
+          );
+          clearDiscoveredFileState(uri);
+          return true;
+        }
+      } catch (e) {
+        output.appendLine(
+          `[discover] warn: failed to stat ${uri.toString()}: ${String(e)}`,
+        );
+      }
+      return false;
+    };
+
+    const updateTestsFromUri = async (uri: vscode.Uri) => {
+      if (await isTooLargeSpecFile(uri)) return;
+      try {
+        const doc = await vscode.workspace.openTextDocument(uri);
+        updateTests(doc);
+      } catch (e) {
+        output.appendLine(
+          `[discover] warn: failed to open ${uri.fsPath}: ${String(e)}`,
+        );
+      }
+    };
+
     // 起動時点ですでに開かれているドキュメントも拾う
     vscode.workspace.textDocuments.forEach(updateTests);
 
@@ -271,12 +321,8 @@ export function activate(context: vscode.ExtensionContext) {
     const watcher = vscode.workspace.createFileSystemWatcher("**/*_spec.rb");
     context.subscriptions.push(
       watcher,
-      watcher.onDidCreate(async (uri) =>
-        updateTests(await vscode.workspace.openTextDocument(uri)),
-      ),
-      watcher.onDidChange(async (uri) =>
-        updateTests(await vscode.workspace.openTextDocument(uri)),
-      ),
+      watcher.onDidCreate(async (uri) => updateTestsFromUri(uri)),
+      watcher.onDidChange(async (uri) => updateTestsFromUri(uri)),
     );
 
     // 起動後にワークスペース全体も一度スキャンする（表示されない問題の回避）
@@ -307,8 +353,7 @@ export function activate(context: vscode.ExtensionContext) {
             `[RSpec Explorer] discover found ${specs.length} spec file(s)`,
           );
           for (const uri of specs) {
-            const doc = await vscode.workspace.openTextDocument(uri);
-            updateTests(doc);
+            await updateTestsFromUri(uri);
           }
         }
       } catch (e) {
