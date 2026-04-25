@@ -56,4 +56,29 @@ end
     const tests = parseRSpec(src);
     expect(tests.map((t) => t.name)).toEqual(["Calculator", ":fast", ":ok"]);
   });
+
+  it("parses focused/pending aliases and parenthesized arguments", () => {
+    const src = `
+fdescribe("Calculator", :focus) do
+  xcontext "when invalid" do
+    fit("works") { expect(true).to eq(true) }
+    xit :skipped do
+      expect(false).to eq(true)
+    end
+    example("normal") do
+      expect(true).to eq(true)
+    end
+  end
+end
+`.trim();
+
+    const tests = parseRSpec(src);
+    expect(tests.map((t) => [t.type, t.name])).toEqual([
+      ["group", "Calculator"],
+      ["group", "when invalid"],
+      ["test", "works"],
+      ["test", ":skipped"],
+      ["test", "normal"],
+    ]);
+  });
 });
