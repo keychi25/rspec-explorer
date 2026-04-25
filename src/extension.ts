@@ -29,6 +29,10 @@ class RSpecCodeLensProvider implements vscode.CodeLensProvider {
   }
 }
 
+function shQuote(value: string): string {
+  return `'${value.replace(/'/g, `'\\''`)}'`;
+}
+
 function findBundlerCwd(
   filePath: string,
   workspaceRoot?: string,
@@ -89,7 +93,7 @@ export function activate(context: vscode.ExtensionContext) {
           }
 
           output.show(true);
-          const cmd = `bundle exec rspec ${uri.fsPath}:${line + 1}`;
+          const cmd = `bundle exec rspec ${shQuote(`${uri.fsPath}:${line + 1}`)}`;
           // Make it clickable (file:line:col) in Output
           output.appendLine(`${uri.fsPath}:${line + 1}:1`);
           output.appendLine(`\n> ${cmd}`);
@@ -225,7 +229,6 @@ export function activate(context: vscode.ExtensionContext) {
       );
       // Build a nested tree based on indentation level (common RSpec style).
       const stack: { indent: number; item: vscode.TestItem }[] = [];
-      const created: vscode.TestItem[] = [];
       const topLevel: vscode.TestItem[] = [];
 
       for (const t of tests) {
@@ -238,7 +241,6 @@ export function activate(context: vscode.ExtensionContext) {
         const item = ctrl.createTestItem(`${doc.uri}/${t.line}`, t.name, doc.uri);
         item.range = new vscode.Range(t.line, 0, t.line, 0);
         parent.children.add(item);
-        created.push(item);
         if (parent === fileItem) topLevel.push(item);
         itemByLocation.set(`${doc.uri.toString()}#${t.line}`, item);
 
@@ -323,6 +325,7 @@ export function activate(context: vscode.ExtensionContext) {
       watcher,
       watcher.onDidCreate(async (uri) => updateTestsFromUri(uri)),
       watcher.onDidChange(async (uri) => updateTestsFromUri(uri)),
+      watcher.onDidDelete((uri) => clearDiscoveredFileState(uri)),
     );
 
     // 起動後にワークスペース全体も一度スキャンする（表示されない問題の回避）
@@ -416,7 +419,7 @@ export function activate(context: vscode.ExtensionContext) {
           "rspec.json",
         );
 
-        const cmd = `bundle exec rspec ${primaryUri.fsPath}${lineSuffix} --format progress --format json --out ${jsonOut}`;
+        const cmd = `bundle exec rspec ${shQuote(`${primaryUri.fsPath}${lineSuffix}`)} --format progress --format json --out ${shQuote(jsonOut)}`;
         // Rich, test-associated output (Cursor/VS Code shows it under the test case).
         run.appendOutput(
           primary.range
