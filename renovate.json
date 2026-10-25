@@ -1,0 +1,50 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":timezone(Asia/Tokyo)",
+    ":semanticCommits"
+  ],
+  "labels": ["dependencies"],
+  "schedule": ["before 9am on monday"],
+  "prConcurrentLimit": 5,
+  "minimumReleaseAge": "3 days",
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 9am on the first day of the month"]
+  },
+  "packageRules": [
+    {
+      "description": "@types/vscode は engines.vscode と揃える必要があるため自動更新しない",
+      "matchPackageNames": ["@types/vscode"],
+      "enabled": false
+    },
+    {
+      "description": "@types/node は CI / .tool-versions の Node メジャー (24) に合わせる",
+      "matchPackageNames": ["@types/node"],
+      "allowedVersions": "<25"
+    },
+    {
+      "description": "ESLint 関連はまとめて更新する",
+      "matchPackageNames": ["eslint", "@eslint/js", "typescript-eslint", "eslint-config-prettier"],
+      "groupName": "eslint"
+    },
+    {
+      "description": "Vitest 関連はまとめて更新する",
+      "matchPackageNames": ["vitest", "@vitest/**"],
+      "groupName": "vitest"
+    },
+    {
+      "description": "GitHub Actions のマイナー/パッチ更新はまとめる",
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "groupName": "github-actions (non-major)"
+    },
+    {
+      "description": "TypeScript / Node のメジャー更新は typescript-eslint や VS Code 側の対応状況を確認してから Dependency Dashboard で承認する",
+      "matchPackageNames": ["typescript", "node", "nodejs"],
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true
+    }
+  ]
+}
