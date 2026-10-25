@@ -70,13 +70,13 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@types/node": "^20.19.37",
+    "@types/node": "^24.19.2",
     "@types/vscode": "1.80.0",
-    "@vscode/vsce": "^2.15.0",
-    "eslint": "^10.1.0",
+    "@vscode/vsce": "^4.0.0",
+    "eslint": "^10.13.0",
     "eslint-config-prettier": "^10.1.8",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "^8.57.2",
-    "vitest": "^3.2.4"
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.72.0",
+    "vitest": "^5.0.5"
   }
 }
